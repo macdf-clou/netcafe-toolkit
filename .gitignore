@@ -1,0 +1,18 @@
+# Windows
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# PowerShell
+*.ps1xml.bak
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*~
+
+# 测试/本地产物
+/tmp/
+/out/
+*.log
