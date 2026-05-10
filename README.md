@@ -11,9 +11,43 @@
 
 ## 脚本列表
 
-| 脚本 | 说明 | 一键执行 |
-|------|------|----------|
-| [`scoop-netcafe.ps1`](./scoop-netcafe.ps1) | 在非还原盘安装 Scoop 包管理器,支持重启后快速恢复 | 见下方 |
+| 脚本 | 说明 |
+|------|------|
+| [`netcafe-setup.ps1`](./netcafe-setup.ps1) | **一键总入口**:串联下面两个,安装 Scoop + 常用软件 |
+| [`scoop-netcafe.ps1`](./scoop-netcafe.ps1) | 在非还原盘安装 Scoop,支持重启后秒级恢复 |
+| [`scoop-apps.ps1`](./scoop-apps.ps1) | 按套件批量装常用软件(浏览器/编辑器/媒体/工具/开发) |
+
+## 最快上手:一条命令装全套
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+$base = 'https://raw.githubusercontent.com/macdf-clou/netcafe-toolkit/main'
+foreach ($f in 'scoop-netcafe.ps1','scoop-apps.ps1','netcafe-setup.ps1') {
+    irm "$base/$f" -OutFile "$env:TEMP\$f"
+}
+& "$env:TEMP\netcafe-setup.ps1"
+```
+
+默认会:
+1. 在 `D:\Scoop` 安装 Scoop
+2. 安装套件:`core + browser + editor + media + utility`
+   - **core**: 7zip, aria2, git, sudo
+   - **browser**: firefox
+   - **editor**: notepad++, vscode
+   - **media**: potplayer, vlc
+   - **utility**: everything, snipaste, quicklook
+
+想要定制:
+
+```powershell
+# 指定盘符,只装核心 + 加 Python 3.11
+& "$env:TEMP\netcafe-setup.ps1" -ScoopRoot 'E:\Scoop' -Profile core -Extra versions/python311
+
+# 装全套
+& "$env:TEMP\netcafe-setup.ps1" -Profile all
+```
+---
+
 
 ---
 
@@ -130,6 +164,7 @@ scoop bucket add extras # 添加 extras 软件源(GUI 类工具)
 
 欢迎 PR。规划中的其他脚本:
 
+- [x] `scoop-apps.ps1` —— 常用软件一键批量安装
 - [ ] `portable-vscode.ps1` —— 非还原盘部署便携版 VS Code + 用户配置
 - [ ] `ssh-keys-restore.ps1` —— SSH 密钥从持久化目录恢复到 `~/.ssh`
 - [ ] `git-config-restore.ps1` —— 全局 Git 配置一键恢复
