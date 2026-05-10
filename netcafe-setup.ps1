@@ -15,7 +15,7 @@
     Scoop 根目录,非还原盘。默认 D:\Scoop。
 
 .PARAMETER Profile
-    要安装的套件,见 scoop-apps.ps1。默认 core,browser,editor,media,utility。
+    要安装的套件,见 scoop-apps.ps1。默认 core,browser,editor,media,utility,runtime。
 
 .PARAMETER Extra
     额外追加的包,例如 versions/python311
@@ -39,7 +39,7 @@
 [CmdletBinding()]
 param(
     [string]  $ScoopRoot = 'D:\Scoop',
-    [string[]]$Profile   = @('core','browser','editor','media','utility'),
+    [string[]]$Profile   = @('core','browser','editor','media','utility','runtime'),
     [string[]]$Extra     = @(),
     [switch]  $SkipApps
 )

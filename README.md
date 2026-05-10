@@ -30,22 +30,53 @@ foreach ($f in 'scoop-netcafe.ps1','scoop-apps.ps1','netcafe-setup.ps1') {
 
 默认会:
 1. 在 `D:\Scoop` 安装 Scoop
-2. 安装套件:`core + browser + editor + media + utility`
+2. 安装套件:`core + browser + editor + media + utility + runtime`
    - **core**: 7zip, aria2, git, sudo
    - **browser**: firefox
    - **editor**: notepad++, vscode
    - **media**: potplayer, vlc
    - **utility**: everything, snipaste, quicklook
+   - **runtime**: .NET Runtime, .NET Desktop Runtime, OpenJDK LTS (Temurin)
+3. 检测系统级 VC++/DirectX 运行库并给出缺失提示
+
+> 加 `-Profile all` 可一次装全,额外包含 **dev** 套件(Python 3.11、Node.js LTS、.NET SDK)。
 
 想要定制:
 
 ```powershell
-# 指定盘符,只装核心 + 加 Python 3.11
-& "$env:TEMP\netcafe-setup.ps1" -ScoopRoot 'E:\Scoop' -Profile core -Extra versions/python311
+# 指定盘符,只装核心 + 开发环境(含 Node.js / Python / .NET SDK)
+& "$env:TEMP\netcafe-setup.ps1" -ScoopRoot 'E:\Scoop' -Profile core,dev
+
+# 默认套件再加 Chrome
+& "$env:TEMP\netcafe-setup.ps1" -Extra extras/googlechrome
 
 # 装全套
 & "$env:TEMP\netcafe-setup.ps1" -Profile all
 ```
+
+## 套件一览
+
+| 套件 | 包含 | 说明 |
+|------|------|------|
+| `core`    | 7zip, aria2, git, sudo | **强烈必装**,aria2 让后续下载飞起 |
+| `browser` | firefox | 浏览器 |
+| `editor`  | notepad++, vscode | 编辑器 |
+| `media`   | potplayer, vlc | 播放器 |
+| `office`  | sumatrapdf | PDF 阅读器 |
+| `utility` | everything, snipaste, quicklook | 文件搜索、截图、空格预览 |
+| `dev`     | python311, nodejs-lts, dotnet-sdk | 开发环境 |
+| `runtime` | dotnet-runtime, dotnet-windowsdesktop-runtime, temurin-lts-jdk | 运行时(跑 .NET / Java 应用) |
+
+## 关于 Windows 系统运行库(VC++ / DirectX)
+
+**这些必须管理员权限才能装,本脚本无法替你装**。脚本末尾会自动检测系统现状:
+
+- **VC++ 2015-2022 (x64/x86)** —— 绝大多数 Win10/11 已预装。微软自 VS2015 起只维护一个统一包(它向后兼容 2015/2017/2019/2022)
+- **DirectX** —— Windows 10/11 内建 DX11/DX12,通常无需再装;跑老游戏若缺 `d3dx9_*.dll` 才需要 DX9 End-User Runtime
+
+如果检测结果显示缺失,两条路:
+1. **让网管装**:把 [`vc_redist.x64.exe`](https://aka.ms/vs/17/release/vc_redist.x64.exe) / [`vc_redist.x86.exe`](https://aka.ms/vs/17/release/vc_redist.x86.exe) / [DX9 End-User Runtime](https://www.microsoft.com/download/details.aspx?id=35) 拷到 U 盘,找网管执行一次
+2. **用便携版**:如果只是某个特定软件报缺 DLL,可以去该软件的"portable"版本里找,通常已捆绑运行时
 ---
 
 
