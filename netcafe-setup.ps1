@@ -23,6 +23,9 @@
 .PARAMETER SkipApps
     只装 Scoop 本体,不装软件。
 
+.PARAMETER Admin
+    你拥有管理员权限时加上,会额外装 VC++ 2015-2022 运行库。
+
 .EXAMPLE
     # 最常用:默认一键装
     .\netcafe-setup.ps1
@@ -41,7 +44,8 @@ param(
     [string]  $ScoopRoot = 'D:\Scoop',
     [string[]]$Profile   = @('core','browser','editor','media','utility','runtime'),
     [string[]]$Extra     = @(),
-    [switch]  $SkipApps
+    [switch]  $SkipApps,
+    [switch]  $Admin
 )
 
 $ErrorActionPreference = 'Stop'
@@ -85,6 +89,8 @@ $appsScript = Join-Path $root 'scoop-apps.ps1'
 if (-not (Test-Path $appsScript)) {
     throw "找不到 $appsScript"
 }
-& $appsScript -Profile $Profile -Extra $Extra
+$appsArgs = @{ Profile = $Profile; Extra = $Extra }
+if ($Admin) { $appsArgs['Admin'] = $true }
+& $appsScript @appsArgs
 
 Write-Banner "全部完成!建议关闭本窗口,重开 PowerShell 再使用。"

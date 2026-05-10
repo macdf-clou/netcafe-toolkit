@@ -31,6 +31,11 @@
 .PARAMETER DryRun
     只打印将要执行的动作,不真正安装。
 
+.PARAMETER Admin
+    你的账号拥有管理员权限时加上(网吧通常没有,家用/自营常有)。
+    加上后会额外安装 extras/vcredist2022 (VC++ 2015-2022 运行库,
+    微软官方 MSI,需要管理员权限)。
+
 .PARAMETER SkipRuntimeCheck
     跳过末尾的 VC++/DirectX 系统运行库检测。
 
@@ -52,6 +57,7 @@ param(
     [string[]]$Profile = @('core','browser','editor','media','utility'),
     [string[]]$Extra   = @(),
     [switch]  $DryRun,
+    [switch]  $Admin,
     [switch]  $SkipRuntimeCheck
 )
 
@@ -97,6 +103,12 @@ foreach ($p in $profiles) {
 foreach ($e in $Extra) {
     if ($e) { [void]$packages.Add($e.Trim()) }
 }
+
+# -Admin 时追加 VC++ 运行库(需要管理员权限执行 MSI)
+if ($Admin) {
+    [void]$packages.Add('extras/vcredist2022')
+}
+
 $packages = @($packages | Select-Object -Unique)
 
 if ($packages.Count -eq 0) {
@@ -201,7 +213,9 @@ if ($fail.Count -gt 0) {
 }
 
 # -------- 7. 检测系统级运行库(VC++ / DirectX) --------
-if (-not $SkipRuntimeCheck) {
+# 若用户加了 -Admin 且 vcredist2022 装成功,就不用再烦他
+$vcInstalledThisRun = $Admin -and ($ok -contains 'extras/vcredist2022' -or $skip -contains 'vcredist2022')
+if (-not $SkipRuntimeCheck -and -not $vcInstalledThisRun) {
     Write-Step "检测系统级运行库(VC++ / DirectX)"
     Write-Host "  这类运行库需要管理员权限才能装,网吧用户无法自行安装。"
     Write-Host "  绝大多数 Win10/11 系统已预装,下面只做检查给你参考。`n"

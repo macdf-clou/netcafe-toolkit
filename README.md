@@ -13,22 +13,36 @@
 
 | 脚本 | 说明 |
 |------|------|
-| [`netcafe-setup.ps1`](./netcafe-setup.ps1) | **一键总入口**:串联下面两个,安装 Scoop + 常用软件 |
+| [`install.ps1`](./install.ps1) | **最短入口**:`iwr ... \| iex` 一行搞定 |
+| [`netcafe-setup.ps1`](./netcafe-setup.ps1) | 本地总入口:串联下面两个 |
 | [`scoop-netcafe.ps1`](./scoop-netcafe.ps1) | 在非还原盘安装 Scoop,支持重启后秒级恢复 |
-| [`scoop-apps.ps1`](./scoop-apps.ps1) | 按套件批量装常用软件(浏览器/编辑器/媒体/工具/开发) |
+| [`scoop-apps.ps1`](./scoop-apps.ps1) | 按套件批量装常用软件(浏览器/编辑器/媒体/工具/开发/运行时) |
 
-## 最快上手:一条命令装全套
+## 最快上手
+
+**默认套件(一条命令):**
 
 ```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-$base = 'https://raw.githubusercontent.com/macdf-clou/netcafe-toolkit/main'
-foreach ($f in 'scoop-netcafe.ps1','scoop-apps.ps1','netcafe-setup.ps1') {
-    irm "$base/$f" -OutFile "$env:TEMP\$f"
-}
-& "$env:TEMP\netcafe-setup.ps1"
+iwr -useb https://raw.githubusercontent.com/macdf-clou/netcafe-toolkit/main/install.ps1 | iex
+```
+
+> 没装好就复制这一条。会在 `D:\Scoop` 装 Scoop,再装 core + browser + editor + media + utility + runtime 套件。
+
+**带参数**(需要包一层 scriptblock):
+
+```powershell
+# 你有管理员权限 → 额外装 VC++ 运行库
+& ([scriptblock]::Create((iwr -useb https://raw.githubusercontent.com/macdf-clou/netcafe-toolkit/main/install.ps1))) -Admin
+
+# 指定盘符 + 装全套 + 管理员权限
+& ([scriptblock]::Create((iwr -useb https://raw.githubusercontent.com/macdf-clou/netcafe-toolkit/main/install.ps1))) -ScoopRoot 'E:\Scoop' -Profile all -Admin
+
+# 默认套件再加 Chrome
+& ([scriptblock]::Create((iwr -useb https://raw.githubusercontent.com/macdf-clou/netcafe-toolkit/main/install.ps1))) -Extra extras/googlechrome
 ```
 
 默认会:
+
 1. 在 `D:\Scoop` 安装 Scoop
 2. 安装套件:`core + browser + editor + media + utility + runtime`
    - **core**: 7zip, aria2, git, sudo
@@ -37,22 +51,9 @@ foreach ($f in 'scoop-netcafe.ps1','scoop-apps.ps1','netcafe-setup.ps1') {
    - **media**: potplayer, vlc
    - **utility**: everything, snipaste, quicklook
    - **runtime**: .NET Runtime, .NET Desktop Runtime, OpenJDK LTS (Temurin)
-3. 检测系统级 VC++/DirectX 运行库并给出缺失提示
+3. 检测系统级 VC++/DirectX 运行库并给出缺失提示(加 `-Admin` 则直接装 VC++)
 
 > 加 `-Profile all` 可一次装全,额外包含 **dev** 套件(Python 3.11、Node.js LTS、.NET SDK)。
-
-想要定制:
-
-```powershell
-# 指定盘符,只装核心 + 开发环境(含 Node.js / Python / .NET SDK)
-& "$env:TEMP\netcafe-setup.ps1" -ScoopRoot 'E:\Scoop' -Profile core,dev
-
-# 默认套件再加 Chrome
-& "$env:TEMP\netcafe-setup.ps1" -Extra extras/googlechrome
-
-# 装全套
-& "$env:TEMP\netcafe-setup.ps1" -Profile all
-```
 
 ## 套件一览
 
@@ -69,7 +70,9 @@ foreach ($f in 'scoop-netcafe.ps1','scoop-apps.ps1','netcafe-setup.ps1') {
 
 ## 关于 Windows 系统运行库(VC++ / DirectX)
 
-**这些必须管理员权限才能装,本脚本无法替你装**。脚本末尾会自动检测系统现状:
+**如果你的账号有管理员权限**(家用/自营电脑通常有),加 `-Admin` 参数,脚本会自动装 VC++ 2015-2022 运行库(`extras/vcredist2022`)。
+
+**没有管理员权限**时,脚本末尾会自动检测系统现状:
 
 - **VC++ 2015-2022 (x64/x86)** —— 绝大多数 Win10/11 已预装。微软自 VS2015 起只维护一个统一包(它向后兼容 2015/2017/2019/2022)
 - **DirectX** —— Windows 10/11 内建 DX11/DX12,通常无需再装;跑老游戏若缺 `d3dx9_*.dll` 才需要 DX9 End-User Runtime
