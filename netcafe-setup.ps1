@@ -26,6 +26,11 @@
 .PARAMETER Admin
     你拥有管理员权限时加上,会额外装 VC++ 2015-2022 运行库。
 
+.PARAMETER AutoDetect
+    不确定用哪个盘时加上,会先跑 detect-persist-drive.ps1 找一个候选盘;
+    若发现已通过重启验证的盘就直接用它。注意:未验证时会沿用 -ScoopRoot
+    默认值并给出提示。
+
 .EXAMPLE
     # 最常用:默认一键装
     .\netcafe-setup.ps1
@@ -45,7 +50,8 @@ param(
     [string[]]$Profile   = @('core','browser','editor','media','utility','runtime'),
     [string[]]$Extra     = @(),
     [switch]  $SkipApps,
-    [switch]  $Admin
+    [switch]  $Admin,
+    [switch]  $AutoDetect
 )
 
 $ErrorActionPreference = 'Stop'
@@ -56,6 +62,25 @@ function Write-Banner($msg) {
     Write-Host ("#" * 60) -ForegroundColor DarkCyan
     Write-Host ("#  $msg") -ForegroundColor DarkCyan
     Write-Host ("#" * 60) -ForegroundColor DarkCyan
+}
+
+# -------- 0. 可选:自动探测非还原盘 --------
+if ($AutoDetect) {
+    Write-Banner "步骤 0/2  探测非还原盘"
+    $detectScript = Join-Path $root 'detect-persist-drive.ps1'
+    if (Test-Path $detectScript) {
+        & $detectScript
+        Write-Host ""
+        Write-Host "如果上面显示了'重启保留 √'的盘,用它替换下面的 -ScoopRoot" -ForegroundColor Yellow
+        Write-Host ("当前将继续使用 -ScoopRoot '{0}'" -f $ScoopRoot) -ForegroundColor Yellow
+        $ans = Read-Host "回车继续,或输入盘符 (例如 E) 覆盖"
+        if ($ans -and $ans -match '^[A-Za-z]$') {
+            $ScoopRoot = "$($ans.ToUpper()):\Scoop"
+            Write-Host ("改用 -ScoopRoot '{0}'" -f $ScoopRoot) -ForegroundColor Green
+        }
+    } else {
+        Write-Host "找不到 detect-persist-drive.ps1 ,跳过自动探测" -ForegroundColor Yellow
+    }
 }
 
 # -------- 1. 执行 Scoop 安装脚本 --------

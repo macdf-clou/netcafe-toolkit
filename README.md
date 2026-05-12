@@ -14,9 +14,10 @@
 | 脚本 | 说明 |
 |------|------|
 | [`install.ps1`](./install.ps1) | **最短入口**:`iwr ... \| iex` 一行搞定 |
-| [`netcafe-setup.ps1`](./netcafe-setup.ps1) | 本地总入口:串联下面两个 |
+| [`netcafe-setup.ps1`](./netcafe-setup.ps1) | 本地总入口:串联下面几个 |
 | [`scoop-netcafe.ps1`](./scoop-netcafe.ps1) | 在非还原盘安装 Scoop,支持重启后秒级恢复 |
 | [`scoop-apps.ps1`](./scoop-apps.ps1) | 按套件批量装常用软件(浏览器/编辑器/媒体/工具/开发/运行时) |
+| [`detect-persist-drive.ps1`](./detect-persist-drive.ps1) | 探测哪个盘是非还原盘(支持重启验证) |
 
 ## 最快上手
 
@@ -67,6 +68,33 @@ iwr -useb https://raw.githubusercontent.com/macdf-clou/netcafe-toolkit/main/inst
 | `utility` | everything, snipaste, quicklook | 文件搜索、截图、空格预览 |
 | `dev`     | python311, nodejs-lts, dotnet-sdk | 开发环境 |
 | `runtime` | dotnet-runtime, dotnet-windowsdesktop-runtime, temurin-lts-jdk | 运行时(跑 .NET / Java 应用) |
+
+## 不知道用哪个盘?先探测
+
+网吧常见"D 盘也会还原"的坑。先跑探测脚本:
+
+```powershell
+# 只探测,不装任何东西
+& ([scriptblock]::Create((iwr -useb https://raw.githubusercontent.com/macdf-clou/netcafe-toolkit/main/install.ps1))) -DetectOnly
+```
+
+首次跑会给候选盘写时间戳标记,然后**重启电脑再跑一次**,脚本会对比`LastBootUpTime`:
+
+- 标记还在且时间戳早于本次开机 → "重启保留 √" → 这就是非还原盘
+- 标记消失了 → 盘被还原了
+- 这是唯一对付**硬件还原卡**的办法(软件还原卡能从注册表/服务名识别,硬件的只能靠这招)
+
+拿到结果后:
+
+```powershell
+& ([scriptblock]::Create((iwr -useb https://raw.githubusercontent.com/macdf-clou/netcafe-toolkit/main/install.ps1))) -ScoopRoot 'E:\Scoop' -Admin
+```
+
+或者一步到位让脚本帮你选:
+
+```powershell
+& ([scriptblock]::Create((iwr -useb https://raw.githubusercontent.com/macdf-clou/netcafe-toolkit/main/install.ps1))) -AutoDetect -Admin
+```
 
 ## 关于 Windows 系统运行库(VC++ / DirectX)
 
